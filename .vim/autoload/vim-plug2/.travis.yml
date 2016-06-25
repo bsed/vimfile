@@ -1,0 +1,49 @@
+language: ruby
+rvm:
+  - 1.8.7
+  - 2.0.0
+env:
+  - ENV=nox
+  - ENV=python
+  - ENV=python3
+  - ENV=ruby
+matrix:
+  exclude:
+    - rvm: 2.0.0
+  include:
+    - rvm: 2.0.0
+      env: ENV=ruby
+install: |
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+  sudo apt-get update -y
+
+  if [ "$ENV" == "nox" ]; then
+    sudo apt-get install -y vim-nox
+    sudo ln -s /usr/bin/vim /usr/local/bin/vim
+    return
+  fi
+
+  C_OPTS="--with-features=huge --disable-gui "
+  case "$ENV" in
+    python)
+      PACKS=python2.7-dev
+      C_OPtS+=--enable-pythoninterp
+      ;;
+    python3)
+      PACKS=python3-dev
+      C_OPtS+=--enable-python3interp
+      ;;
+    ruby)
+      C_OPTS+=--enable-rubyinterp
+      ;;
+  esac
+
+  sudo apt-get install -y $PACKS
+  git clone --depth 1 https://github.com/vim/vim
+  cd vim
+  ./configure $C_OPTS
+  make
+  sudo make install
+  cd -
+script: test/run !
